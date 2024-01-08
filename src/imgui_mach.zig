@@ -580,8 +580,8 @@ const BackendRendererData = struct {
             };
             bd.queue.writeBuffer(device_resources.uniforms, 0, &[_]Uniforms{uniforms});
 
-            const width = draw_data.framebuffer_scale.x * draw_data.display_size.x;
-            const height = draw_data.framebuffer_scale.y * draw_data.display_size.y;
+            const width: f32 = @floatFromInt(core.descriptor.width);
+            const height: f32 = @floatFromInt(core.descriptor.height);
             const index_format: gpu.IndexFormat = if (@sizeOf(imgui.DrawIdx) == 2) .uint16 else .uint32;
 
             pass_encoder.setViewport(0, 0, width, height, 0, 1);
