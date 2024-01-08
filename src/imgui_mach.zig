@@ -9,12 +9,19 @@ var allocator: std.mem.Allocator = undefined;
 // Public API
 // ------------------------------------------------------------------------------------------------
 
+pub const InitOptions = struct {
+    max_frames_in_flight: u32 = 3,
+    color_format: ?gpu.Texture.Format = null, // uses swap chain format if null
+    depth_stencil_format: gpu.Texture.Format = .undefined,
+    mag_filter: gpu.FilterMode = .linear,
+    min_filter: gpu.FilterMode = .linear,
+    mipmap_filter: gpu.MipmapFilterMode = .linear,
+};
+
 pub fn init(
     allocator_: std.mem.Allocator,
     device: *gpu.Device,
-    max_frames_in_flight: u32,
-    color_format: gpu.Texture.Format,
-    depth_stencil_format: gpu.Texture.Format,
+    options: InitOptions,
 ) !void {
     allocator = allocator_;
 
@@ -27,7 +34,7 @@ pub fn init(
     io.backend_platform_user_data = brp;
 
     var brd = try allocator.create(BackendRendererData);
-    brd.* = BackendRendererData.init(device, max_frames_in_flight, color_format, depth_stencil_format);
+    brd.* = BackendRendererData.init(device, options);
     io.backend_renderer_user_data = brd;
 }
 
@@ -372,15 +379,16 @@ const BackendRendererData = struct {
     queue: *gpu.Queue,
     color_format: gpu.Texture.Format,
     depth_stencil_format: gpu.Texture.Format,
+    mag_filter: gpu.FilterMode,
+    min_filter: gpu.FilterMode,
+    mipmap_filter: gpu.MipmapFilterMode,
     device_resources: ?DeviceResources,
     max_frames_in_flight: u32,
     frame_index: u32,
 
     pub fn init(
         device: *gpu.Device,
-        max_frames_in_flight: u32,
-        color_format: gpu.Texture.Format,
-        depth_stencil_format: gpu.Texture.Format,
+        options: InitOptions,
     ) BackendRendererData {
         var io = imgui.getIO();
         io.backend_renderer_name = "imgui_mach";
@@ -389,10 +397,13 @@ const BackendRendererData = struct {
         return .{
             .device = device,
             .queue = device.getQueue(),
-            .color_format = color_format,
-            .depth_stencil_format = depth_stencil_format,
+            .color_format = options.color_format orelse core.descriptor.format,
+            .depth_stencil_format = options.depth_stencil_format,
+            .mag_filter = options.mag_filter,
+            .min_filter = options.min_filter,
+            .mipmap_filter = options.mipmap_filter,
             .device_resources = null,
-            .max_frames_in_flight = max_frames_in_flight,
+            .max_frames_in_flight = options.max_frames_in_flight,
             .frame_index = std.math.maxInt(u32),
         };
     }
@@ -739,9 +750,9 @@ const DeviceResources = struct {
 
         // Sampler
         const sampler = bd.device.createSampler(&.{
-            .min_filter = .linear,
-            .mag_filter = .linear,
-            .mipmap_filter = .linear,
+            .min_filter = bd.min_filter,
+            .mag_filter = bd.mag_filter,
+            .mipmap_filter = bd.mipmap_filter,
             .address_mode_u = .repeat,
             .address_mode_v = .repeat,
             .address_mode_w = .repeat,

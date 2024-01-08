@@ -26,7 +26,7 @@ pub fn init(app: *App) !void {
 
     imgui.setZigAllocator(&allocator);
     _ = imgui.createContext(null);
-    try imgui_mach.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
+    try imgui_mach.init(allocator, core.device, .{});
 
     var io = imgui.getIO();
     io.config_flags |= imgui.ConfigFlags_NavEnableKeyboard;
