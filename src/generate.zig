@@ -341,14 +341,14 @@ fn isNullable(x: std.json.Value) bool {
     return true;
 }
 
-fn emitPointerType(x: std.json.Value, is_many_item: bool) void {
+fn emitPointerType(x: std.json.Value, is_parameter: bool, is_many_item: bool) void {
     if (isNullable(x))
         write("?");
 
     const inner_type = x.object.get("inner_type").?;
     if (is_many_item) {
         write("[*]");
-        emitTypeDesc(inner_type, false);
+        emitTypeDesc(inner_type, is_parameter, false);
     } else {
         const inner_type_kind = inner_type.object.get("kind").?.string;
         switch (hash(inner_type_kind)) {
@@ -370,14 +370,14 @@ fn emitPointerType(x: std.json.Value, is_many_item: bool) void {
         }
 
         write("*");
-        emitTypeDesc(inner_type, false);
+        emitTypeDesc(inner_type, is_parameter, false);
     }
 }
 
 fn emitFunctionParameters(x: std.json.Value) void {
     for (x.array.items, 0..) |item, i| {
         if (i > 0) write(", ");
-        emitTypeDesc(item, false);
+        emitTypeDesc(item, true, false);
     }
 }
 
@@ -385,29 +385,34 @@ fn emitFunctionType(x: std.json.Value) void {
     write("const fn (");
     emitFunctionParameters(x.object.get("parameters").?);
     write(") callconv(.C) ");
-    emitTypeDesc(x.object.get("return_type").?, false);
+    emitTypeDesc(x.object.get("return_type").?, true, false);
 }
 
-fn emitArrayType(x: std.json.Value) void {
-    write("[");
-    if (x.object.get("bounds")) |bounds| {
-        if (bounds_aliases_map.get(bounds.string)) |alias| {
-            write(alias);
-        } else {
-            if (trimPrefixOpt(bounds.string, "ImGui")) |name| {
-                write(name);
-            } else {
-                write(bounds.string);
-            }
-        }
+fn emitArrayType(x: std.json.Value, is_parameter: bool) void {
+    if (is_parameter) {
+        write("[*]");
+        emitTypeDesc(x.object.get("inner_type").?, true, false);
     } else {
-        write("*");
+        write("[");
+        if (x.object.get("bounds")) |bounds| {
+            if (bounds_aliases_map.get(bounds.string)) |alias| {
+                write(alias);
+            } else {
+                if (trimPrefixOpt(bounds.string, "ImGui")) |name| {
+                    write(name);
+                } else {
+                    write(bounds.string);
+                }
+            }
+        } else {
+            write("*");
+        }
+        write("]");
+        emitTypeDesc(x.object.get("inner_type").?, false, false);
     }
-    write("]");
-    emitTypeDesc(x.object.get("inner_type").?, false);
 }
 
-fn emitTypeDesc(x: std.json.Value, is_many_item: bool) void {
+fn emitTypeDesc(x: std.json.Value, is_parameter: bool, is_many_item: bool) void {
     if (x.object.get("storage_classes")) |storage_classes| {
         emitStorageClasses(storage_classes);
     }
@@ -416,17 +421,17 @@ fn emitTypeDesc(x: std.json.Value, is_many_item: bool) void {
     switch (hash(kind)) {
         hash("Builtin") => emitBuiltinType(x),
         hash("User") => emitUserType(x),
-        hash("Pointer") => emitPointerType(x, is_many_item),
-        hash("Type") => emitTypeDesc(x.object.get("inner_type").?, false),
+        hash("Pointer") => emitPointerType(x, is_parameter, is_many_item),
+        hash("Type") => emitTypeDesc(x.object.get("inner_type").?, is_parameter, false),
         hash("Function") => emitFunctionType(x),
-        hash("Array") => emitArrayType(x),
+        hash("Array") => emitArrayType(x, is_parameter),
         else => std.debug.panic("unknown type kind {s}", .{kind}),
     }
 }
 
-fn emitType(x: std.json.Value, is_many_item: bool) void {
+fn emitType(x: std.json.Value, is_parameter: bool, is_many_item: bool) void {
     const description = x.object.get("description").?;
-    emitTypeDesc(description, is_many_item);
+    emitTypeDesc(description, is_parameter, is_many_item);
 }
 
 fn emitTypedef(x: std.json.Value) void {
@@ -434,7 +439,7 @@ fn emitTypedef(x: std.json.Value) void {
     const full_name = x.object.get("name").?.string;
     const name = trimNamespace(full_name);
     print("pub const {s} = ", .{name});
-    emitType(x.object.get("type").?, false);
+    emitType(x.object.get("type").?, false, false);
     write(";");
     appendAlignedField(x);
 }
@@ -465,7 +470,7 @@ fn emitStructField(x: std.json.Value, struct_name: []const u8) void {
     write("    ");
     emitSnakeCase(name);
     write(": ");
-    emitType(x.object.get("type").?, is_many_item);
+    emitType(x.object.get("type").?, false, is_many_item);
     write(",");
     appendAlignedField(x);
 }
@@ -543,7 +548,7 @@ fn emitFunctionArgument(x: std.json.Value) void {
         const name = full_name;
         print("{s}: ", .{name});
         if (x.object.get("type")) |_| {
-            emitType(x.object.get("type").?, false);
+            emitType(x.object.get("type").?, true, false);
         } else {
             std.debug.print("no type {s}\n", .{full_name});
         }
@@ -564,7 +569,7 @@ fn emitExternFunction(x: std.json.Value) void {
     print("extern fn {s}(", .{full_name});
     emitFunctionArguments(x.object.get("arguments").?);
     write(") ");
-    emitType(x.object.get("return_type").?, false);
+    emitType(x.object.get("return_type").?, true, false);
     write(";\n");
 }
 

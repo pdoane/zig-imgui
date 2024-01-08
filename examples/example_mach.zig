@@ -17,6 +17,7 @@ var allocator: std.mem.Allocator = undefined;
 
 title_timer: core.Timer,
 f: f32 = 0.0,
+color: [3]f32 = undefined,
 
 pub fn init(app: *App) !void {
     try core.init(.{});
@@ -91,6 +92,7 @@ fn render(app: *App) !void {
 
     imgui.text("Hello, world!");
     _ = imgui.sliderFloat("float", &app.f, 0.0, 1.0);
+    _ = imgui.colorEdit3("color", &app.color, imgui.ColorEditFlags_None);
     imgui.text("Application average %.3f ms/frame (%.1f FPS)", 1000.0 / io.framerate, io.framerate);
     imgui.showDemoWindow(null);
 
