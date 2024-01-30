@@ -7,7 +7,6 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const use_dusk = b.option(bool, "use_dusk", "Use Dusk") orelse false;
     const use_freetype = b.option(bool, "use_freetype", "Use Freetype") orelse false;
 
     const mach_core_dep = b.dependency("mach_core", .{
@@ -16,15 +15,14 @@ pub fn build(b: *std.Build) !void {
     });
 
     const module = b.addModule("zig-imgui", .{
-        .source_file = .{ .path = "src/imgui.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "src/imgui.zig" },
+        .imports = &.{
             .{ .name = "mach-core", .module = mach_core_dep.module("mach-core") },
         },
     });
 
     const lib = b.addStaticLibrary(.{
         .name = "imgui",
-        .root_source_file = .{ .path = "src/cimgui.cpp" },
         .target = target,
         .optimize = optimize,
     });
@@ -39,6 +37,7 @@ pub fn build(b: *std.Build) !void {
     defer flags.deinit();
 
     try files.appendSlice(&.{
+        "src/cimgui.cpp",
         imgui_dep.path("imgui.cpp").getPath(b),
         imgui_dep.path("imgui_widgets.cpp").getPath(b),
         imgui_dep.path("imgui_tables.cpp").getPath(b),
@@ -65,28 +64,18 @@ pub fn build(b: *std.Build) !void {
 
     // Example
     const build_options = b.addOptions();
-    build_options.addOption(bool, "use_dusk", use_dusk);
 
     const app = try mach_core.App.init(b, mach_core_dep.builder, .{
         .name = "mach-imgui-example",
         .src = "examples/example_mach.zig",
         .target = target,
-        .deps = &[_]std.build.ModuleDependency{
+        .deps = &[_]std.Build.Module.Import{
             .{ .name = "imgui", .module = module },
             .{ .name = "build-options", .module = build_options.createModule() },
         },
         .optimize = optimize,
     });
     app.compile.linkLibrary(lib);
-
-    if (use_dusk) {
-        const mach_dusk_dep = b.dependency("mach_dusk", .{
-            .target = target,
-            .optimize = optimize,
-        });
-        app.compile.linkLibrary(mach_dusk_dep.artifact("mach-dusk"));
-        @import("mach_dusk").link(mach_dusk_dep.builder, app.compile);
-    }
 
     const run_step = b.step("run", "Run the example");
     run_step.dependOn(&app.run.step);

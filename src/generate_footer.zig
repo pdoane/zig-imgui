@@ -9,7 +9,7 @@ fn zigAlloc(sz: usize, user_data: ?*anyopaque) callconv(.C) ?*anyopaque {
 
     if (allocator.alignedAlloc(u8, alignment, sz + alignment)) |mem| {
         const user_ptr = mem.ptr + alignment;
-        var info_ptr: *usize = @ptrCast(mem.ptr);
+        const info_ptr: *usize = @ptrCast(mem.ptr);
         info_ptr.* = sz + alignment;
         return user_ptr;
     } else |_| {

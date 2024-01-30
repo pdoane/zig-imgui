@@ -645,7 +645,7 @@ pub fn main() !void {
     for (type_aliases) |entry| try type_aliases_map.put(allocator, entry[0], entry[1]);
     for (bounds_aliases) |entry| try bounds_aliases_map.put(allocator, entry[0], entry[1]);
     for (is_many_item_field) |entry| {
-        var struct_entry = try is_many_item_field_set.getOrPut(allocator, entry[0]);
+        const struct_entry = try is_many_item_field_set.getOrPut(allocator, entry[0]);
         if (!struct_entry.found_existing)
             struct_entry.value_ptr.* = .{};
         try struct_entry.value_ptr.*.put(allocator, entry[1], {});

@@ -8,16 +8,12 @@
     .version = "0.1.0",
     .dependencies = .{
         .mach_core = .{
-            .url = "https://pkg.machengine.org/mach-core/cce02fb96ca787378289c5855b381f0ca9f3e090.tar.gz",
-            .hash = "122096b39d9266d275b780df4d63b1afe6e9a3726f19766baf74b34af3f092532cd3",
+            .url = "https://pkg.machengine.org/mach-core/370bc1504cebaffcda5ed1ae9915fd2ac6778479.tar.gz",
+            .hash = "12205da1ecba58ba8c9ca65dbf75e32f42fde0490d34a98596ae72d4d3db81659dc5",
         },
         .freetype = .{
-            .url = "https://pkg.machengine.org/freetype/fa33c2db730c0e888046e863b5550ddc3d24e739.tar.gz",
-            .hash = "12206ed50a939287c717f76547baf24e54301de4500505c19f10965ef559619baf10",
-        },
-        .mach_dusk = .{
-            .url = "https://pkg.machengine.org/mach-dusk/ee8abd31daefa617832c590d61c1e1d665a5e55a.tar.gz",
-            .hash = "1220d0bf732d8291b8629ce7e115efb6adef84dcc1218317ee0a89a6f1663153f2a9",
+            .url = "https://pkg.machengine.org/freetype/398638fd1cb723e478658ea371fe3be1a4dce0ae.tar.gz",
+            .hash = "12208c57b72e3fb5c8d5d3e667e2e21ca1d9e2b6fc3f84182b320f63933f591823da",
         },
         .imgui = .{
             .url = "https://github.com/ocornut/imgui/archive/refs/tags/v1.90.tar.gz",

@@ -29,11 +29,11 @@ pub fn init(
     std.debug.assert(io.backend_platform_user_data == null);
     std.debug.assert(io.backend_renderer_user_data == null);
 
-    var brp = try allocator.create(BackendPlatformData);
+    const brp = try allocator.create(BackendPlatformData);
     brp.* = BackendPlatformData.init();
     io.backend_platform_user_data = brp;
 
-    var brd = try allocator.create(BackendRendererData);
+    const brd = try allocator.create(BackendRendererData);
     brd.* = BackendRendererData.init(device, options);
     io.backend_renderer_user_data = brd;
 }
@@ -514,7 +514,7 @@ const BackendRendererData = struct {
                     } else {
                         // Texture
                         const tex_id = cmd.getTexID();
-                        var entry = try device_resources.image_bind_groups.getOrPut(allocator, tex_id);
+                        const entry = try device_resources.image_bind_groups.getOrPut(allocator, tex_id);
                         if (!entry.found_existing) {
                             entry.value_ptr.* = bd.device.createBindGroup(
                                 &gpu.BindGroup.Descriptor.init(.{

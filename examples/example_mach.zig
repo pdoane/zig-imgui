@@ -7,11 +7,6 @@ const gpu = core.gpu;
 
 pub const App = @This();
 
-pub const mach_core_options = core.ComptimeOptions{
-    .use_wgpu = !build_options.use_dusk,
-    .use_dgpu = build_options.use_dusk,
-};
-
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var allocator: std.mem.Allocator = undefined;
 
@@ -85,7 +80,7 @@ pub fn update(app: *App) !bool {
 }
 
 fn render(app: *App) !void {
-    var io = imgui.getIO();
+    const io = imgui.getIO();
 
     imgui_mach.newFrame() catch return;
     imgui.newFrame();
