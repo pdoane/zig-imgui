@@ -1,6 +1,6 @@
 const std = @import("std");
 const imgui = @import("imgui.zig");
-const core = @import("mach-core");
+const core = @import("mach").core;
 const gpu = core.gpu;
 
 var allocator: std.mem.Allocator = undefined;

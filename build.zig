@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const mach_core = @import("mach_core");
+const mach = @import("mach");
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) !void {
 
     const use_freetype = b.option(bool, "use_freetype", "Use Freetype") orelse false;
 
-    const mach_core_dep = b.dependency("mach_core", .{
+    const mach_dep = b.dependency("mach", .{
         .target = target,
         .optimize = optimize,
     });
@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) !void {
     const module = b.addModule("zig-imgui", .{
         .root_source_file = .{ .path = "src/imgui.zig" },
         .imports = &.{
-            .{ .name = "mach-core", .module = mach_core_dep.module("mach-core") },
+            .{ .name = "mach", .module = mach_dep.module("mach") },
         },
     });
 
@@ -65,7 +65,7 @@ pub fn build(b: *std.Build) !void {
     // Example
     const build_options = b.addOptions();
 
-    const app = try mach_core.App.init(b, mach_core_dep.builder, .{
+    const app = try mach.CoreApp.init(b, mach_dep.builder, .{
         .name = "mach-imgui-example",
         .src = "examples/example_mach.zig",
         .target = target,
