@@ -56,10 +56,11 @@ pub fn build(b: *std.Build) !void {
     }
 
     lib.addIncludePath(imgui_dep.path("."));
-    lib.addCSourceFiles(.{
-        .files = files.items,
-        .flags = flags.items,
-    });
+
+    for (files.items) |file| {
+        lib.addCSourceFile(.{ .file = .{ .path = file }, .flags = flags.items });
+    }
+
     b.installArtifact(lib);
 
     // Example
